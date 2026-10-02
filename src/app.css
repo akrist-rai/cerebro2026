@@ -1,0 +1,336 @@
+/* CEREBRO '26 promo — the TECH HUNT 2026 frontend, carried over.
+   Black field, bone type, one hot signal colour.
+   Every picture is ASCII (see src/lib/ascii). Keep canvas colours in
+   src/lib/fx.js in sync with these tokens. */
+
+:root {
+  --ink: #0b0b0a;
+  --ink-2: #121210;
+  --ink-3: #1a1a18;
+  --line: #262623;
+  --line-2: #3a3934;
+  --bone: #ece8dd;
+  --dim: #8a877e;
+  --faint: #5c5a53;
+  --hot: #ff4a1c;
+  --hot-deep: #c7340f;
+  --lime: #c6f432;
+
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --display: 'Archivo', 'Arial Narrow', Impact, sans-serif;
+  --led: 'Doto', 'JetBrains Mono', ui-monospace, monospace;
+
+  --gutter: clamp(16px, 3.2vw, 44px);
+  --bar: 56px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  color-scheme: dark;
+  font-family: var(--mono);
+  font-variant-ligatures: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-padding-top: calc(var(--bar) + 12px);
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--ink);
+  color: var(--bone);
+}
+
+body {
+  font-size: 14px;
+  line-height: 1.55;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--hot);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--hot);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ink);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-2);
+  border: 3px solid var(--ink);
+}
+
+/* ---------- type ---------- */
+
+.display {
+  font-family: var(--display);
+  font-stretch: 62%;
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: -0.01em;
+  word-spacing: 0.14em;
+}
+
+.led {
+  font-family: var(--led);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- controls ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 20px;
+  border: 1px solid var(--bone);
+  background: transparent;
+  color: var(--bone);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.btn:hover {
+  background: var(--bone);
+  color: var(--ink);
+}
+
+.btn.hot {
+  background: var(--hot);
+  border-color: var(--hot);
+  color: var(--ink);
+}
+
+.btn.hot:hover {
+  background: var(--bone);
+  border-color: var(--bone);
+}
+
+.btn.small {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 11px;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  background: transparent;
+  color: var(--bone);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--dim);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.chip i {
+  font-style: normal;
+  color: var(--faint);
+}
+
+.chip:hover {
+  color: var(--bone);
+  border-color: var(--dim);
+}
+
+.chip.on {
+  background: var(--bone);
+  border-color: var(--bone);
+  color: var(--ink);
+}
+
+.chip.on i {
+  color: var(--ink);
+  opacity: 0.55;
+}
+
+/* ---------- sections ---------- */
+
+.block {
+  padding: clamp(56px, 7vw, 96px) var(--gutter) 0;
+}
+
+.h2 {
+  margin: 28px 0 0;
+  font-size: clamp(64px, 9vw, 150px);
+}
+
+.h2 em {
+  font-style: normal;
+  color: var(--hot);
+}
+
+.prose {
+  max-width: 60ch;
+  font-size: 15px;
+  color: var(--dim);
+}
+
+.prose p {
+  margin: 0 0 16px;
+}
+
+.prose b {
+  font-weight: 500;
+  color: var(--hot);
+}
+
+/* A window chrome around ASCII art: ■ □ □ filename */
+.frame {
+  border: 1px solid var(--line-2);
+  background: var(--ink);
+}
+
+.frame .bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--faint);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.frame .bar i {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--line-2);
+}
+
+.frame .bar i:first-child {
+  background: var(--hot);
+  border-color: var(--hot);
+}
+
+.frame .bar span {
+  margin-left: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.caption {
+  display: block;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--faint);
+}
+
+/* Section header: [ 02 ] LABEL ---------------- meta */
+.rule-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.rule-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+  order: 1;
+}
+
+.rule-head .end {
+  order: 2;
+  color: var(--bone);
+  text-decoration: none;
+  letter-spacing: 0.12em;
+}
+
+.rule-head a.end:hover {
+  color: var(--hot);
+}
+
+.rule-head b {
+  color: var(--hot);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
